@@ -30,11 +30,9 @@ namespace UdonSharpOptimizer
 
         private static readonly MethodInfo optimizerInject = AccessTools.Method(typeof(OptimizerInject), nameof(OptimizeHook));
 
-        private static bool _patchSuccess;
-        public static bool PatchSuccess => _patchSuccess;
+        public static bool PatchSuccess { get; private set; }
 
-        private static int _patchFailures;
-        public static int PatchFailures => _patchFailures;
+        public static int PatchFailures { get; private set; }
 
         static OptimizerInject()
         {
@@ -49,7 +47,7 @@ namespace UdonSharpOptimizer
             using (new UdonSharpUtils.UdonSharpAssemblyLoadStripScope())
             {
                 Harmony.UnpatchAll(HARMONY_ID);
-                _patchFailures = 0;
+                PatchFailures = 0;
 
                 // Inject Optimizer into UdonSharp
                 MethodInfo target = AccessTools.Method(typeof(UdonSharpCompilerV1), "EmitAllPrograms");
@@ -151,7 +149,7 @@ namespace UdonSharpOptimizer
                 }
             }
 
-            _patchSuccess = patched || already;
+            PatchSuccess = patched || already;
             if (patched)
             {
                 Debug.Log("[Optimizer] Activated");
@@ -210,7 +208,7 @@ namespace UdonSharpOptimizer
             if (!patched)
             {
                 Debug.LogWarning("[Optimizer] Failed to add debug string to return value");
-                _patchFailures++;
+                PatchFailures++;
                 return instrEnumerator;
             }
 
@@ -259,7 +257,7 @@ namespace UdonSharpOptimizer
 
             if (!patched)
             {
-                _patchFailures++;
+                PatchFailures++;
                 Debug.LogWarning("[Optimizer] Failed to add debug string to switch jump table");
                 return instrEnumerator;
             }

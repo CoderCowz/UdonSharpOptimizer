@@ -30,6 +30,8 @@ namespace UdonSharpOptimizer
         public bool DoubleCopy = true;
         [Tooltip("Targets Unread COPY (Cow dirty)")]
         public bool CleanUnreadCopy = true;
+        [Tooltip("Simplify JUMP => JUMP")]
+        public bool DirectJump = true;
         [Tooltip("Performs Tail Call Optimization")]
         public bool EnableTCO = true;
         [Tooltip("Reduce amount of temporary variables")]

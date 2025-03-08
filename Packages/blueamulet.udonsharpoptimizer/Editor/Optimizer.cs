@@ -1,7 +1,7 @@
 ﻿/*
  * Unofficial UdonSharp Optimizer
  * The Optimizer.
- * Version 1.0.11
+ * Version 1.0.12
  * Written by BlueAmulet
  */
 
@@ -50,6 +50,7 @@ namespace UdonSharpOptimizer
             new OPTStoreCopy(),
             new OPTDoubleCopy(),
             new OPTUnreadCopy(),
+            new OPTDirectJump(),
             new OPTTailCall(),
         };
 
@@ -57,6 +58,7 @@ namespace UdonSharpOptimizer
         private readonly EmitContext _moduleEmitContext;
         private List<AssemblyInstruction> _instrs;
         private HashSet<AssemblyInstruction> _hasJump;
+        private Dictionary<uint, AssemblyInstruction> _instrMap;
         private Dictionary<string, Value> _tempTable = new Dictionary<string, Value>();
         internal int removedInsts = 0;
 
@@ -136,6 +138,11 @@ namespace UdonSharpOptimizer
             return false;
         }
 
+        internal AssemblyInstruction GetJumpTarget(uint address)
+        {
+            return _instrMap[address];
+        }
+
         // Full code scan, except optimizable patterns are ignored
         internal bool ReadScan(Func<int, bool> ignore, Value value)
         {
@@ -182,6 +189,7 @@ namespace UdonSharpOptimizer
 
             _instrs = new List<AssemblyInstruction>();
             _hasJump = new HashSet<AssemblyInstruction>();
+            _instrMap = new Dictionary<uint, AssemblyInstruction>();
             AssemblyModule assemblyModule = _moduleEmitContext.Module;
             HashSet<JumpLabel> jumpLabels = new HashSet<JumpLabel>();
             List<Value> addrValues = new List<Value>();
@@ -232,6 +240,7 @@ namespace UdonSharpOptimizer
                     if (inst.Size != 0 && inst.InstructionAddress == jumpEnumerator.Current)
                     {
                         _hasJump.Add(inst);
+                        _instrMap.Add(inst.InstructionAddress, inst);
                         while (inst.InstructionAddress == jumpEnumerator.Current)
                         {
                             if (!jumpEnumerator.MoveNext())
@@ -597,17 +606,6 @@ namespace UdonSharpOptimizer
                 addressMap.Add(assemblyModule.CurrentAddress, currentAddress);
                 _instructions(assemblyModule) = _instrs;
 
-                // Add comments to instructions that can be jumped to
-                /*
-                for (int i = instrs.Count - 1; i >= 0; i--)
-                {
-                    if (hasJump.Contains(instrs[i]))
-                    {
-                        instrs.Insert(i, new Comment($"Jump Target: 0x{instrs[i].InstructionAddress:X8}"));
-                    }
-                }
-                //*/
-
                 // Update jump addresses
                 foreach (JumpLabel jumpLabel in jumpLabels)
                 {
@@ -757,6 +755,7 @@ namespace UdonSharpOptimizer
             {
                 _hasJump.Remove(original);
                 _hasJump.Add(instr);
+                _instrMap[instr.InstructionAddress] = instr;
             }
             return instr;
         }

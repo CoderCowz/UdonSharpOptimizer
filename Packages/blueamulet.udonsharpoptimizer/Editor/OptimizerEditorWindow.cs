@@ -23,6 +23,7 @@ namespace UdonSharpOptimizer
         SerializedProperty _optStoreAndCopy;
         SerializedProperty _optDoubleCopy;
         SerializedProperty _optCleanUnreadCopy;
+        SerializedProperty _optDirectJump;
         SerializedProperty _optTCO;
         SerializedProperty _optVariables;
         SerializedProperty _optBlockReduction;
@@ -51,6 +52,7 @@ namespace UdonSharpOptimizer
             _optStoreAndCopy = _settingsSO.FindProperty(nameof(OptimizerSettings.StoreAndCopy));
             _optDoubleCopy = _settingsSO.FindProperty(nameof(OptimizerSettings.DoubleCopy));
             _optCleanUnreadCopy = _settingsSO.FindProperty(nameof(OptimizerSettings.CleanUnreadCopy));
+            _optDirectJump = _settingsSO.FindProperty(nameof(OptimizerSettings.DirectJump));
             _optTCO = _settingsSO.FindProperty(nameof(OptimizerSettings.EnableTCO));
             _optVariables = _settingsSO.FindProperty(nameof(OptimizerSettings.EnableVariableReduction));
             _optBlockReduction = _settingsSO.FindProperty(nameof(OptimizerSettings.EnableBlockReduction));
@@ -112,7 +114,8 @@ namespace UdonSharpOptimizer
                     EditorGUILayout.PropertyField(_optStoreAndCopy, false);
                     EditorGUILayout.PropertyField(_optDoubleCopy, false);
                     EditorGUILayout.PropertyField(_optCleanUnreadCopy, false);
-                    EditorGUILayout.PropertyField(_optTCO, false);
+                    EditorGUILayout.PropertyField(_optDirectJump, false);
+                    EditorGUILayout.PropertyField(_optTCO, new GUIContent("Optimize Tail Calls"), false);
                     EditorGUILayout.Space();
                     EditorGUILayout.PropertyField(_optVariables, new GUIContent("Reduce Variables"), false);
                     using (new EditorGUI.DisabledScope(!_settings.EnableVariableReduction))
