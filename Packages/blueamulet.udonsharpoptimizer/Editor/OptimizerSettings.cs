@@ -1,3 +1,9 @@
+/*
+ * Unofficial UdonSharp Optimizer
+ * Optimizer Settings
+ * Written by BlueAmulet
+ */
+
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;

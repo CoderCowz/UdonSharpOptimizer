@@ -5,7 +5,11 @@ namespace UdonSharpOptimizer.Optimizations
 {
     internal interface IBaseOptimization
     {
-        bool Enabled();
+        bool Enabled { get; }
+
+        void ResetStats();
+
+        void OnGUI();
 
         void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i);
     }

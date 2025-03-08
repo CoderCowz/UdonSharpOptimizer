@@ -5,18 +5,17 @@ using UdonSharp.Compiler.Emit;
 
 namespace UdonSharpOptimizer.Optimizations
 {
-    internal class OPTTailCall : IBaseOptimization
+    internal class OPTTailCall : BaseOptimization
     {
-        public bool Enabled()
-        {
-            return OptimizerSettings.Instance.EnableTCO;
-        }
+        protected override string GUILabel => "Tail Calls";
 
-        public void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
+        public override bool Enabled => OptimizerSettings.Instance.EnableTCO;
+
+        public override void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
         {
             // Tail call optimization
             // TODO: Properly verify this jump is to a method
-            if (instrs[i] is JumpInstruction && instrs[i + 1] is RetInstruction rInst && !optimizer.HasJump(rInst) && instrs[i - 1] is Comment cInst && cInst.Comment.StartsWith("Calling "))
+            if (instrs[i] is JumpInstruction && instrs[i + 1] is RetInstruction rInst && instrs[i - 1] is Comment cInst && cInst.Comment.StartsWith("Calling "))
             {
                 // Locate the corresponding push above
                 int pushIdx = -1;
@@ -36,8 +35,15 @@ namespace UdonSharpOptimizer.Optimizations
                 {
                     PushInstruction pInst = (PushInstruction)instrs[pushIdx];
                     instrs[pushIdx] = optimizer.TransferInstr(new Comment($"OPTTailCall: Tail call optimization, removed PUSH {pInst.PushValue.UniqueID}"), instrs[pushIdx]);
-                    instrs[i + 1] = optimizer.TransferInstr(new Comment($"OPTTailCall: Tail call optimization, removed RET {rInst.RetValRef.UniqueID}"), rInst);
-                    optimizer.removedInsts += 4; // PUSH & PUSH + COPY + JUMP_INDIRECT
+                    if (!optimizer.HasJump(rInst))
+                    {
+                        instrs[i + 1] = optimizer.TransferInstr(new Comment($"OPTTailCall: Tail call optimization, removed RET {rInst.RetValRef.UniqueID}"), rInst);
+                        CountRemoved(optimizer, 4); // PUSH & PUSH + COPY + JUMP_INDIRECT
+                    }
+                    else
+                    {
+                        CountRemoved(optimizer, 1); // PUSH
+                    }
                 }
             }
         }

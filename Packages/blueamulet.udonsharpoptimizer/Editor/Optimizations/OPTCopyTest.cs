@@ -4,14 +4,13 @@ using UdonSharp.Compiler.Assembly.Instructions;
 
 namespace UdonSharpOptimizer.Optimizations
 {
-    internal class OPTCopyTest : IBaseOptimization
+    internal class OPTCopyTest : BaseOptimization
     {
-        public bool Enabled()
-        {
-            return OptimizerSettings.Instance.CopyAndTest;
-        }
+        protected override string GUILabel => "Copy Test";
 
-        public void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
+        public override bool Enabled => OptimizerSettings.Instance.CopyAndTest;
+
+        public override void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
         {
             // Remove Copy: Copy + JumpIf
             if (instrs[i] is CopyInstruction cInst && i < instrs.Count - 1 && instrs[i + 1] is JumpIfFalseInstruction jifInst)
@@ -20,7 +19,7 @@ namespace UdonSharpOptimizer.Optimizations
                 {
                     instrs[i] = optimizer.TransferInstr(Optimizer.CopyComment("OPTCopyTest", cInst), cInst);
                     instrs[i + 1] = optimizer.TransferInstr(new JumpIfFalseInstruction(jifInst.JumpTarget, cInst.SourceValue), jifInst);
-                    optimizer.removedInsts += 3; // PUSH, PUSH, COPY
+                    CountRemoved(optimizer, 3); // PUSH, PUSH, COPY
                 }
             }
         }

@@ -1,3 +1,9 @@
+/*
+ * Unofficial UdonSharp Optimizer
+ * Settings and Statistics window
+ * Written by BlueAmulet
+ */
+
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +16,7 @@ namespace UdonSharpOptimizer
     {
         OptimizerSettings _settings;
         SerializedObject _settingsSO;
+
         SerializedProperty _optEnabled;
         SerializedProperty _optCopyAndLoad;
         SerializedProperty _optCopyAndTest;
@@ -22,7 +29,13 @@ namespace UdonSharpOptimizer
         SerializedProperty _optStoreLoad;
         SerializedProperty _optThis;
 
-        [MenuItem("Tools/UdonSharp Optimizer")]
+        Vector2 _scrollPos;
+        bool _statusOpen = true;
+        bool _settingsOpen = true;
+        bool _buildInfoOpen = true;
+        bool _detailedInstrOpen = false;
+
+        [MenuItem("UdonSharpOptimizer/Settings")]
         public static void ShowWindow()
         {
             EditorWindow.GetWindow<OptimizerEditorWindow>("UdonSharp Optimizer");
@@ -53,66 +66,96 @@ namespace UdonSharpOptimizer
                 OnEnable();
             }
 
-            GUIStyle richStyle = new GUIStyle(EditorStyles.label);
-            richStyle.richText = true;
+            GUIStyle richLabel = new GUIStyle(EditorStyles.label);
+            richLabel.richText = true;
+            GUIStyle boldFoldout = new GUIStyle(EditorStyles.foldout);
+            boldFoldout.fontStyle = FontStyle.Bold;
+
+            _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUIStyle.none, GUI.skin.verticalScrollbar);
 
             // Optimizer status
-            EditorGUILayout.LabelField("Status:", EditorStyles.boldLabel);
-            AlignedText("Optimizer:", $"<color={(OptimizerInject.PatchSuccess ? "lime>Activated" : "orange><b>Failed to inject</b>")}</color>", richStyle);
-            int patchFailures = OptimizerInject.PatchFailures;
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel("Patches:");
-            if (patchFailures == 0)
+            _statusOpen = EditorGUILayout.Foldout(_statusOpen, "Status:", boldFoldout);
+            if (_statusOpen)
             {
-                EditorGUILayout.LabelField($"<color=lime>{patchFailures} patch failures</color>", richStyle);
+                EditorGUI.indentLevel++;
+                AlignedText("Optimizer:", $"<color={(OptimizerInject.PatchSuccess ? "lime>Activated" : "orange><b>Failed to inject</b>")}</color>", richLabel);
+                int patchFailures = OptimizerInject.PatchFailures;
+                EditorGUILayout.BeginHorizontal();
+                {
+                    EditorGUILayout.PrefixLabel("Patches:");
+                    if (patchFailures == 0)
+                    {
+                        EditorGUILayout.LabelField($"<color=lime>{patchFailures} patch failures</color>", richLabel);
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField($"<color=orange><b>{patchFailures} patch failures</b></color>", richLabel);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+                EditorGUI.indentLevel--;
             }
-            else
-            {
-                EditorGUILayout.LabelField($"<color=orange><b>{patchFailures} patch failures</b></color>", richStyle);
-            }
-            EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space();
 
             // Settings
-            EditorGUILayout.LabelField("Settings:", EditorStyles.boldLabel);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(_optEnabled, false);
-            EditorGUILayout.Space();
-            using (new EditorGUI.DisabledScope(!_settings.EnableOptimizer))
+            _settingsOpen = EditorGUILayout.Foldout(_settingsOpen, "Settings:", boldFoldout);
+            if (_settingsOpen)
             {
-                EditorGUILayout.PropertyField(_optCopyAndLoad, false);
-                EditorGUILayout.PropertyField(_optCopyAndTest, false);
-                EditorGUILayout.PropertyField(_optStoreAndCopy, false);
-                EditorGUILayout.PropertyField(_optDoubleCopy, false);
-                EditorGUILayout.PropertyField(_optCleanUnreadCopy, false);
-                EditorGUILayout.PropertyField(_optTCO, false);
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(_optEnabled, false);
                 EditorGUILayout.Space();
-                EditorGUILayout.PropertyField(_optVariables, false);
-                using (new EditorGUI.DisabledScope(!_settings.EnableVariableReduction))
+                using (new EditorGUI.DisabledScope(!_settings.EnableOptimizer))
                 {
-                    EditorGUILayout.PropertyField(_optBlockReduction, false);
-                    EditorGUILayout.PropertyField(_optStoreLoad, false);
-                    EditorGUILayout.PropertyField(_optThis, false);
+                    EditorGUILayout.PropertyField(_optCopyAndLoad, false);
+                    EditorGUILayout.PropertyField(_optCopyAndTest, false);
+                    EditorGUILayout.PropertyField(_optStoreAndCopy, false);
+                    EditorGUILayout.PropertyField(_optDoubleCopy, false);
+                    EditorGUILayout.PropertyField(_optCleanUnreadCopy, false);
+                    EditorGUILayout.PropertyField(_optTCO, false);
+                    EditorGUILayout.Space();
+                    EditorGUILayout.PropertyField(_optVariables, new GUIContent("Reduce Variables"), false);
+                    using (new EditorGUI.DisabledScope(!_settings.EnableVariableReduction))
+                    {
+                        EditorGUILayout.PropertyField(_optBlockReduction, false);
+                        EditorGUILayout.PropertyField(_optStoreLoad, false);
+                        EditorGUILayout.PropertyField(_optThis, false);
+                    }
                 }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _settingsSO.ApplyModifiedProperties();
+                }
+                EditorGUI.indentLevel--;
             }
-            if (EditorGUI.EndChangeCheck())
-            {
-                _settingsSO.ApplyModifiedProperties();
-            }
+            EditorGUILayout.Space();
 
             // Last Build information
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Last Build:", EditorStyles.boldLabel);
-            AlignedText("Instructions:", $"{Optimizer.RemovedInstructions} removed", EditorStyles.label);
-            AlignedText("Variables:", $"{Optimizer.RemovedVariables} removed", EditorStyles.label);
-            AlignedText("Extra __this:", $"{Optimizer.RemovedThisTotal} removed", EditorStyles.label);
+            _buildInfoOpen = EditorGUILayout.Foldout(_buildInfoOpen, "Last Build:", boldFoldout);
+            if (_buildInfoOpen)
+            {
+                EditorGUI.indentLevel++;
+                AlignedText("Instructions:", $"{Optimizer.RemovedInstructions} removed", EditorStyles.label);
+                AlignedText("Variables:", $"{Optimizer.RemovedVariables} removed", EditorStyles.label);
+                AlignedText("Extra __this:", $"{Optimizer.RemovedThisTotal} removed", EditorStyles.label);
+                _detailedInstrOpen = EditorGUILayout.Foldout(_detailedInstrOpen, "Details:", boldFoldout);
+                if (_detailedInstrOpen)
+                {
+                    Optimizer.OnGUI();
+                }
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUILayout.EndScrollView();
         }
 
-        private static void AlignedText(string prefix, string text, GUIStyle style)
+        internal static void AlignedText(string prefix, string text, GUIStyle style)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(prefix);
-            EditorGUILayout.LabelField(text, style);
+            {
+                EditorGUILayout.PrefixLabel(prefix);
+                EditorGUILayout.LabelField(text, style);
+            }
             EditorGUILayout.EndHorizontal();
         }
     }

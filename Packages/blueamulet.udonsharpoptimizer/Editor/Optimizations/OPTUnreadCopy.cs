@@ -4,14 +4,13 @@ using UdonSharp.Compiler.Assembly.Instructions;
 
 namespace UdonSharpOptimizer.Optimizations
 {
-    internal class OPTUnreadCopy : IBaseOptimization
+    internal class OPTUnreadCopy : BaseOptimization
     {
-        public bool Enabled()
-        {
-            return OptimizerSettings.Instance.CleanUnreadCopy;
-        }
+        protected override string GUILabel => "Unread Copy";
 
-        public void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
+        public override bool Enabled => OptimizerSettings.Instance.CleanUnreadCopy;
+
+        public override void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
         {
             // Remove Copy: Unread target (Cleans up Cow dirty)
             if (instrs[i] is CopyInstruction cInst)
@@ -19,7 +18,7 @@ namespace UdonSharpOptimizer.Optimizations
                 if (Optimizer.IsPrivate(cInst.TargetValue) && !optimizer.ReadScan(_ => false, cInst.TargetValue))
                 {
                     instrs[i] = optimizer.TransferInstr(Optimizer.CopyComment("OPTUnreadCopy", cInst), cInst);
-                    optimizer.removedInsts += 3; // PUSH, PUSH, COPY
+                    CountRemoved(optimizer, 3); // PUSH, PUSH, COPY
                 }
             }
         }

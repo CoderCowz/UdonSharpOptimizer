@@ -1,7 +1,7 @@
 ﻿/*
  * Unofficial UdonSharp Optimizer
  * The Optimizer.
- * Version 1.0.10
+ * Version 1.0.11
  * Written by BlueAmulet
  */
 
@@ -43,7 +43,7 @@ namespace UdonSharpOptimizer
         public static int RemovedThisTotal => _removedThisTotal;
 
         // Optimizations
-        readonly IBaseOptimization[] _optimizations = new IBaseOptimization[]
+        private static readonly IBaseOptimization[] _optimizations = new IBaseOptimization[]
         {
             new OPTCopyLoad(),
             new OPTCopyTest(),
@@ -70,11 +70,23 @@ namespace UdonSharpOptimizer
             _removedInstructions = 0;
             _removedVariables = 0;
             _removedThisTotal = 0;
+            foreach (IBaseOptimization optimization in _optimizations)
+            {
+                optimization.ResetStats();
+            }
         }
 
         internal static void LogGlobalCounters()
         {
             Debug.Log($"[Optimizer] Removed {_removedInstructions} instructions, {_removedVariables} variables, and {_removedThisTotal} extra __this total");
+        }
+
+        internal static void OnGUI()
+        {
+            foreach (IBaseOptimization optimization in _optimizations)
+            {
+                optimization.OnGUI();
+            }
         }
 
         /* The Optimizer */
@@ -242,7 +254,7 @@ namespace UdonSharpOptimizer
             List<IBaseOptimization> activeOptList = new List<IBaseOptimization>();
             foreach (IBaseOptimization optimization in _optimizations)
             {
-                if (optimization.Enabled())
+                if (optimization.Enabled)
                 {
                     activeOptList.Add(optimization);
                 }

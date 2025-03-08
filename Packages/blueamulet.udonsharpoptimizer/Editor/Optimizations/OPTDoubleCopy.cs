@@ -4,14 +4,13 @@ using UdonSharp.Compiler.Assembly.Instructions;
 
 namespace UdonSharpOptimizer.Optimizations
 {
-    internal class OPTDoubleCopy : IBaseOptimization
+    internal class OPTDoubleCopy : BaseOptimization
     {
-        public bool Enabled()
-        {
-            return OptimizerSettings.Instance.DoubleCopy;
-        }
+        protected override string GUILabel => "Double Copy";
 
-        public void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
+        public override bool Enabled => OptimizerSettings.Instance.DoubleCopy;
+
+        public override void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i)
         {
             // Remove Copy: Copy + Copy
             if (instrs[i] is CopyInstruction cInst1 && i < instrs.Count - 1 && instrs[i + 1] is CopyInstruction cInst2)
@@ -20,7 +19,7 @@ namespace UdonSharpOptimizer.Optimizations
                 {
                     instrs[i] = optimizer.TransferInstr(Optimizer.CopyComment("OPTDoubleCopy", cInst1), cInst1);
                     instrs[i + 1] = optimizer.TransferInstr(new CopyInstruction(cInst1.SourceValue, cInst2.TargetValue), cInst2);
-                    optimizer.removedInsts += 3; // PUSH, PUSH, COPY
+                    CountRemoved(optimizer, 3); // PUSH, PUSH, COPY
                 }
             }
         }

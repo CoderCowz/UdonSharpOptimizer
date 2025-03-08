@@ -5,7 +5,9 @@ Adds a hook to UdonSharp to process the generated Udon, reducing the number of i
 After any UdonSharp compile, a line will appear in the console similar to the following:  
 `[Optimizer] Removed # instructions, # variables, and # extra __this total`
 
-No permanent changes are made to the VRCSDK, all changes are made in memory and can be easily removed by removing this package.
+For Unity 2022, no permanent changes are made to the VRCSDK, all changes are made in memory and can be easily removed by removing this package.  
+For Unity 2019, an additional file is added to the VRCSDK to allow the optimizer to function.  
+This can be found at the path `Packages/com.vrchat.worlds/Integrations/UdonSharp/Editor/USOInternals.cs`
 
 ## Optimizations
 There are currently 3 class of optimizations:
@@ -29,3 +31,4 @@ UdonSharp makes a *LOT* of temporary variables. We detect places where we can re
 1.0.9  - Moved TCO into first pass, added block based variable reduction  
 1.0.9b - Fixed udon functions destroying variables in other functions  
 1.0.10 - Code refactor, added additional instruction and variable optimizations  
+1.0.11 - Per optimization statistics, Unity 2019 fix, expanded TCO optimization
