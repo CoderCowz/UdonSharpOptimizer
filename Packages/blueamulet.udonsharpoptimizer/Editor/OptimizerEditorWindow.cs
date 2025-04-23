@@ -29,6 +29,7 @@ namespace UdonSharpOptimizer
         SerializedProperty _optBlockReduction;
         SerializedProperty _optStoreLoad;
         SerializedProperty _optThis;
+        SerializedProperty _optDFO;
 
         Vector2 _scrollPos;
         bool _statusOpen = true;
@@ -58,6 +59,7 @@ namespace UdonSharpOptimizer
             _optBlockReduction = _settingsSO.FindProperty(nameof(OptimizerSettings.EnableBlockReduction));
             _optStoreLoad = _settingsSO.FindProperty(nameof(OptimizerSettings.EnableStoreLoad));
             _optThis = _settingsSO.FindProperty(nameof(OptimizerSettings.EnableThisBugFix));
+            _optDFO = _settingsSO.FindProperty(nameof(OptimizerSettings.EnableDFO));
         }
 
         public void OnGUI()
@@ -124,6 +126,8 @@ namespace UdonSharpOptimizer
                         EditorGUILayout.PropertyField(_optStoreLoad, false);
                         EditorGUILayout.PropertyField(_optThis, false);
                     }
+                    EditorGUILayout.Space();
+                    EditorGUILayout.PropertyField(_optDFO, false);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {

@@ -22,5 +22,15 @@ namespace UdonSharpOptimizer.Optimizations
                 }
             }
         }
+        
+        public override void PrePass(Optimizer optimizer, List<AssemblyInstruction> instrs)
+        {
+            
+        }
+        
+        public override void Cleanup(Optimizer optimizer, List<AssemblyInstruction> instrs)
+        {
+            
+        }
     }
 }

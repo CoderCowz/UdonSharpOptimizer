@@ -45,6 +45,7 @@ namespace UdonSharpOptimizer
         // Optimizations
         private static readonly IBaseOptimization[] _optimizations = new IBaseOptimization[]
         {
+            new OPTDeadFunction(),
             new OPTCopyLoad(),
             new OPTCopyTest(),
             new OPTStoreCopy(),
@@ -274,6 +275,10 @@ namespace UdonSharpOptimizer
             Dictionary<string, HashSet<uint>> valueBlock = new Dictionary<string, HashSet<uint>>();
             Dictionary<string, uint> valueLast = new Dictionary<string, uint>();
             uint currentBlock = 0;
+            foreach (var opt in activeOptimizations)
+            {
+                opt.PrePass(this, _instrs);
+            }
             for (int i = 0; i < _instrs.Count; i++)
             {
                 foreach (IBaseOptimization optimization in activeOptimizations)
@@ -330,6 +335,10 @@ namespace UdonSharpOptimizer
                         instrValue2 = null;
                     }
                 }
+            }
+            foreach (var opt in activeOptimizations)
+            {
+                opt.Cleanup(this, _instrs);
             }
             //Debug.Log($"Removed {removedInsts} instructions");
 

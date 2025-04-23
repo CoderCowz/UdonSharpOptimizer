@@ -12,5 +12,9 @@ namespace UdonSharpOptimizer.Optimizations
         void OnGUI();
 
         void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i);
+        
+        void PrePass(Optimizer optimizer, List<AssemblyInstruction> instrs);
+        
+        void Cleanup(Optimizer optimizer, List<AssemblyInstruction> instrs);
     }
 }

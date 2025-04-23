@@ -42,6 +42,8 @@ namespace UdonSharpOptimizer
         public bool EnableStoreLoad = true;
         [Tooltip("Fix extra __this_ variables")]
         public bool EnableThisBugFix = true;
+        [Tooltip("[EXPERIMENTAL] Performs Dead Function Removal")]
+        public bool EnableDFO = false;
 
         private static OptimizerSettings _instance;
 

@@ -11,6 +11,7 @@ namespace UdonSharpOptimizer.Optimizations
         public abstract bool Enabled { get; }
 
         public abstract void ProcessInstruction(Optimizer optimizer, List<AssemblyInstruction> instrs, int i);
+        public abstract void PrePass(Optimizer optimizer, List<AssemblyInstruction> instrs);
 
         public void ResetStats()
         {
@@ -27,5 +28,7 @@ namespace UdonSharpOptimizer.Optimizations
             optimizer.removedInsts += count;
             removedInstructions += count;
         }
+        
+        public abstract void Cleanup(Optimizer optimizer, List<AssemblyInstruction> instrs);
     }
 }
